@@ -6,13 +6,6 @@ interface ButtonContainerProps {
   variant: ButtonVariant
 }
 
-// const buttonVariants = {
-//   primary: 'purple',
-//   secondary: 'orange',
-//   success: 'green',
-//   danger: 'red',
-// }
-
 const ButtonContainer = styled.button<ButtonContainerProps>`
   ${({ theme }) => css`
     width: 100px;
