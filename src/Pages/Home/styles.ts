@@ -87,7 +87,7 @@ const Separator = styled.div`
   justify-content: center;
 `
 
-const StartCountButton = styled.button`
+const BaseCountButton = styled.button`
   width: 100%;
   border: 0;
   padding: 1rem;
@@ -105,12 +105,24 @@ const StartCountButton = styled.button`
   background: ${(props) => props.theme['green-500']};
   color: ${(props) => props.theme['gray-100']};
 
+  &:disabled {
+    opacity: 0.7;
+  }
+`
+
+const StartCountButton = styled(BaseCountButton)`
+  background: ${(props) => props.theme['green-500']};
+
   &:not(:disabled)hover {
     background: ${(props) => props.theme['green-700']};
   }
+`
 
-  &:disabled {
-    opacity: 0.7;
+const StopCountButton = styled(BaseCountButton)`
+  background: ${(props) => props.theme['red-500']};
+
+  &:not(:disabled)hover {
+    background: ${(props) => props.theme['red-700']};
   }
 `
 
@@ -122,4 +134,6 @@ export {
   StartCountButton,
   TaskInput,
   MinutesAmoutInput,
+  BaseCountButton,
+  StopCountButton,
 }
