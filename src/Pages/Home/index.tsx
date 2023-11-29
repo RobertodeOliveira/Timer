@@ -1,20 +1,10 @@
-import { useForm } from 'react-hook-form'
 import * as S from './styles'
 import { HandPalm, Play } from 'phosphor-react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as zod from 'zod'
+
 import { useEffect, useState } from 'react'
 import { differenceInSeconds } from 'date-fns'
-
-const newCycleValidationSchema = zod.object({
-  task: zod.string().min(1, 'informe a tarefa'),
-  minutesAmount: zod
-    .number()
-    .min(5, 'O ciclo precisa ser de no mínimo 5 min')
-    .max(60, 'O ciclo precisa ser de no máximo 60 min'),
-})
-
-type NewCycleFormData = zod.infer<typeof newCycleValidationSchema>
+import { NewCycleForm } from './components/NewCycleForm'
+import { Countdown } from './components/Countdown'
 
 interface Cycle {
   id: string
@@ -26,17 +16,8 @@ interface Cycle {
 }
 
 export function Home() {
-  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
-    resolver: zodResolver(newCycleValidationSchema),
-    defaultValues: {
-      task: '',
-      minutesAmount: 0,
-    },
-  })
-
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-  const [amountSecondPassed, setAmountSecondPassed] = useState(0)
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -53,8 +34,8 @@ export function Home() {
   }
 
   function handleInterruptCycle() {
-    setCycles(
-      cycles.map((cycle) => {
+    setCycles((state) =>
+      state.map((cycle) => {
         if (cycle.id === activeCycleId) {
           return { ...cycle, interrupteDate: new Date() }
         } else {
@@ -68,25 +49,10 @@ export function Home() {
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   // useEffect utilizado para fazer o monitoramento da mudança de valor em segundos
-  useEffect(() => {
-    let interval: number
-
-    if (activeCycle) {
-      interval = setInterval(() => {
-        setAmountSecondPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate),
-        )
-      }, 1000)
-    }
-    return () => {
-      clearInterval(interval)
-      setAmountSecondPassed(0)
-    }
-  }, [activeCycle])
 
   // Só receberá o total de segungos se a varável activeCycle for multiplicada por 60,
   // caso contrário será 0
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+
   const currentSeconds = activeCycle ? totalSeconds - amountSecondPassed : 0
   // Só receberá se a subtração for diferente de 0
   const minutesAmount = Math.floor(currentSeconds / 60)
@@ -111,45 +77,8 @@ export function Home() {
   return (
     <S.HomeContainer>
       <form action="" onSubmit={handleSubmit(handleCreateNewCycle)}>
-        <S.FormContainer>
-          <label htmlFor="task">Vou trabalhar em</label>
-          <S.TaskInput
-            type="task"
-            placeholder="Dê um nome para o seu projeto"
-            list="task-sugestions"
-            disabled={!!activeCycle}
-            {...register('task')}
-          />
-
-          <datalist id="task-sugestions">
-            <option value="Projeto 1" />
-            <option value="Projeto 2" />
-            <option value="Projeto 3" />
-            <option value="Projeto 4" />
-          </datalist>
-
-          <label htmlFor="">durante</label>
-          <S.MinutesAmoutInput
-            type="number"
-            placeholder="00"
-            step={5}
-            max={60}
-            min={5}
-            disabled={!!activeCycle}
-            {...register('minutesAmount', { valueAsNumber: true })}
-          />
-
-          <span>minutos.</span>
-        </S.FormContainer>
-
-        <S.CountDownContainer>
-          <span>{minutes[0]}</span>
-          <span>{minutes[1]}</span>
-          <S.Separator>:</S.Separator>
-          <span>{seconds[0]}</span>
-          <span>{seconds[1]}</span>
-        </S.CountDownContainer>
-
+        <NewCycleForm />
+        <Countdown />
         {activeCycle ? (
           <S.StopCountButton onClick={handleInterruptCycle} type="button">
             Interromper
