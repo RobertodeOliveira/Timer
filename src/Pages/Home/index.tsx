@@ -3,7 +3,8 @@ import * as S from './styles'
 import { Play } from 'phosphor-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { differenceInSeconds } from 'date-fns'
 
 const newCycleValidationSchema = zod.object({
   task: zod.string().min(1, 'informe a tarefa'),
@@ -19,6 +20,7 @@ interface Cycle {
   id: string
   task: string
   minutesAmount: number
+  startDate: Date
 }
 
 export function Home() {
@@ -33,6 +35,7 @@ export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
   const [amountSecondPassed, setAmountSecondPassed] = useState(0)
+
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
 
@@ -40,6 +43,7 @@ export function Home() {
       id,
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startDate: new Date(),
     }
     setCycles((status) => [...status, newCycle])
     setActiveCycleId(id)
@@ -48,14 +52,40 @@ export function Home() {
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
+  // useEffect utilizado para fazer o monitoramento da mudança de valor em segundos
+  useEffect(() => {
+    let interval: number
+
+    if (activeCycle) {
+      interval = setInterval(() => {
+        setAmountSecondPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+    return () => {
+      clearInterval(interval)
+      setAmountSecondPassed(0)
+    }
+  }, [activeCycle])
+
+  // Só receberá o total de segungos se a varável activeCycle for multiplicada por 60,
+  // caso contrário será 0
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - amountSecondPassed : 0
-
+  // Só receberá se a subtração for diferente de 0
   const minutesAmount = Math.floor(currentSeconds / 60)
+  // É preciso converter os segundos em minutos
   const secondsAmount = currentSeconds % 60
-
+  // Recolher o resto da divisão, que serão os segundos restantes de um determinado minuto
   const minutes = String(minutesAmount).padStart(2, '0')
   const seconds = String(secondsAmount).padStart(2, '0')
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   const task = watch('task')
   const isSubmitDisable = !task
