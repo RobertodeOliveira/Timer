@@ -55,14 +55,4 @@ const StopCountButton = styled(BaseCountButton)`
   }
 `
 
-export {
-  CountDownContainer,
-  FormContainer,
-  HomeContainer,
-  Separator,
-  StartCountButton,
-  TaskInput,
-  MinutesAmoutInput,
-  BaseCountButton,
-  StopCountButton,
-}
+export { HomeContainer, StartCountButton, BaseCountButton, StopCountButton }

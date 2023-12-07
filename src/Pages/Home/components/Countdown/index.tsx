@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import * as S from './styles'
 import { differenceInSeconds } from 'date-fns'
+import { CyclesContext } from '../../../../context/CyclesContext'
 
 export function Countdown() {
-  const [amountSecondPassed, setAmountSecondPassed] = useState(0)
+  const {
+    activeCycle,
+    activeCycleId,
+    markCurrentCycleAsFinshed,
+    amountSecondPassed,
+    setSecondsPassed,
+  } = useContext(CyclesContext)
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
 
@@ -16,28 +23,40 @@ export function Countdown() {
           new Date(),
           activeCycle.startDate,
         )
-
         if (secondsDifference >= totalSeconds) {
-          setCycles((state) =>
-            state.map((cycle) => {
-              if (cycle.id === activeCycleId) {
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle
-              }
-            }),
-          )
-          setAmountSecondPassed(totalSeconds)
+          markCurrentCycleAsFinshed()
+
+          setSecondsPassed(totalSeconds)
           clearInterval(interval)
         } else {
-          setAmountSecondPassed(secondsDifference)
+          setSecondsPassed(secondsDifference)
         }
       }, 1000)
       return () => {
         clearInterval(interval)
       }
     }
-  }, [activeCycle, activeCycleId, totalSeconds])
+  }, [
+    activeCycle,
+    activeCycleId,
+    totalSeconds,
+    markCurrentCycleAsFinshed,
+    setSecondsPassed,
+  ])
+
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  const minutes = String(minutesAmount).padStart(2, '0')
+  const seconds = String(secondsAmount).padStart(2, '0')
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   return (
     <S.CountDownContainer>
